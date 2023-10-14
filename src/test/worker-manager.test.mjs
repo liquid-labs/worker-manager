@@ -69,7 +69,32 @@ describe('WorkerManager', () => {
     })
   })
 
-  test('getLastMessage reflect the last message sent by the worker', async () => {
+  describe('list()', () => {
+    test('list a task once started', () => {
+      const wm = new WorkerManager()
+      const worker = wm.create({ runFile: chattyReflectWorkerPath, workerData: 'hi' })
+      const { threadId } = worker
+      expect(wm.list().some(({ threadId: testId }) => testId = threadId )).toBe(true)
+    })
+  })
+
+  test("gathers 'msg' data automatically", async() => {
+    const msg = "do it!"
+    const workerData = { msg }
+    const wm = new WorkerManager()
+    const worker = wm.create({ runFile: chattyReflectWorkerPath, workerData })
+    const { threadId } = worker
+    for (let i = 0; i < 100; i += 1) {
+      if (wm.getStatus(threadId) === workerStatus.DONE) {
+        expect(wm.get(threadId).actions).toEqual([ msg ])
+        break
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 10))
+    }
+  })
+
+  test('getLastMessage() reflect the last message sent by the worker', async () => {
     const workerData = 'hi!'
     const wm = new WorkerManager()
     const worker = wm.create({ runFile: chattyReflectWorkerPath, workerData })
@@ -77,6 +102,22 @@ describe('WorkerManager', () => {
     for (let i = 0; i < 100; i += 1) {
       if (wm.getStatus(threadId) === workerStatus.DONE) {
         expect(wm.getLastMessage(threadId)).toEqual(workerData)
+        break
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 10))
+    }
+  })
+
+  test("calls 'onExit' on exit", async() => {
+    let exitCode = undefined
+    const workerData = 'hi!'
+    const wm = new WorkerManager()
+    const worker = wm.create({ onExit: (code) => exitCode = code, runFile: chattyReflectWorkerPath, workerData })
+    const { threadId } = worker
+    for (let i = 0; i < 100; i += 1) {
+      if (wm.getStatus(threadId) === workerStatus.DONE) {
+        expect(exitCode).toBe(0)
         break
       }
 
