@@ -14,13 +14,16 @@ const WorkerManager = class {
   #data = {}
   #workers = {}
 
-  constructor({ cleanInterval = 10 * 1000 /* 10 sec */, timeout = 25 * 60 * 60 * 1000 /* a little over a day */ }) {
+  constructor({ 
+    cleanInterval = 10 * 1000 /* 10 sec */, 
+    timeout = 25 * 60 * 60 * 1000 /* a little over a day */ 
+  } = {}) {
     // clean out completed, acknowledged tasks and too old tasks
     setInterval(() => {
       for (const threadId of Object.keys(this.#data)) {
-        const data = this.#data[threadId]
-        if ((data[threadId]?.acknowledged === true && data[threadId]?.running === false)
-            || new Date().getTime() - data[threadId]?.startTime > timout) {
+        const workerData = this.#data[threadId]
+        if ((workerData?.acknowledged === true && workerData?.running === false)
+            || new Date().getTime() - workerData?.startTime > timeout) {
           this.#workers[threadId]?.terminate()
           this.remove(threadId)
         }
@@ -30,14 +33,13 @@ const WorkerManager = class {
 
   create({
     runFile = throw new Error("Missing required 'runFile' arg when invoking WorkerManager.create()."),
-    // optional
     workerData,
     onError,
     onOnline,
     onMessage,
     onMessageError,
     onExit
-  }) {
+  } = {}) {
     const worker = new Worker(runFile, { workerData })
     const { threadId } = worker
     worker.acknowledge = () => {
@@ -81,7 +83,7 @@ const WorkerManager = class {
         data.error = err.toString()
       }
       if (onError) {
-        onError(worker, err)
+        onError(err, worker)
       }
       worker.terminate()
     })
@@ -93,7 +95,7 @@ const WorkerManager = class {
         data.error = err.toString()
       }
       if (onMessageError) {
-        onMessageError(worker, err)
+        onMessageError(err, worker)
       }
     })
     worker.on('message', (msgData) => {
@@ -106,7 +108,7 @@ const WorkerManager = class {
         }
       }
       if (onMessage) {
-        onMessage(worker, msgData)
+        onMessage(msgData, worker)
       }
     })
     worker.on('exit', (code) => {
@@ -120,7 +122,7 @@ const WorkerManager = class {
         data.endTime = new Date().getTime()
       }
       if (onExit) {
-        onExit(worker, code)
+        onExit(code, worker)
       }
     })
 
