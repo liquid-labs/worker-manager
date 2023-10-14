@@ -1,9 +1,10 @@
-/* global describe expect test */
+/* global beforeAll describe expect test */
 import * as fsPath from 'node:path'
 
 import { WorkerManager, workerStatus } from '../worker-manager'
 
 const chattyReflectWorkerPath = fsPath.join(__dirname, 'data', 'chatty-reflect-worker.cjs')
+const errorWorkerPath = fsPath.join(__dirname, 'data', 'error-worker.cjs')
 const sleepyWorkerPath = fsPath.join(__dirname, 'data', 'sleepy-worker.mjs')
 
 describe('WorkerManager', () => {
@@ -14,6 +15,21 @@ describe('WorkerManager', () => {
     await new Promise(resolve => setTimeout(resolve, 500))
     expect(lastMessage).toBe('started')
     expect(wm.get(threadId)).toBe(undefined)
+  })
+
+  describe('on worker error', () => {
+    let wm, threadId
+    let onErrorCalled = false
+
+    beforeAll(async() => {
+      wm = new WorkerManager();
+      ({ threadId } = wm.create({ onError: () => onErrorCalled = true, runFile: errorWorkerPath }))
+      await new Promise(resolve => setTimeout(resolve, 100))
+    })
+
+    test('getStatus() => ERROR', () => expect(wm.getStatus(threadId)).toBe(workerStatus.ERROR))
+
+    test("calls 'onError' handler", () => expect(onErrorCalled).toBe(true))
   })
 
   describe('create()', () => {
