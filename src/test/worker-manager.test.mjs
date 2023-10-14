@@ -21,10 +21,15 @@ describe('WorkerManager', () => {
 
   describe('on worker error', () => {
     let wm, threadId
+    let errorMsg = ''
     let onErrorCalled = false
 
+    const stderrMock = {
+      write: (chunk) => errorMsg += chunk
+    }
+
     beforeAll(async() => {
-      wm = new WorkerManager({ silent: true });
+      wm = new WorkerManager({ stderr: stderrMock });
       ({ threadId } = wm.create({ onError: () => onErrorCalled = true, runFile: errorWorkerPath }))
       await new Promise(resolve => setTimeout(resolve, 100))
     })
@@ -32,6 +37,8 @@ describe('WorkerManager', () => {
     test('getStatus() => ERROR', () => expect(wm.getStatus(threadId)).toBe(workerStatus.ERROR))
 
     test("calls 'onError' handler", () => expect(onErrorCalled).toBe(true))
+
+    test("prints message to supplied stderr", () => expect(errorMsg).toMatch(/Ahh!/))
   })
 
   // TODO: I cannot figure out how to trigger this event...
