@@ -4,6 +4,7 @@ import * as fsPath from 'node:path'
 import { WorkerManager, workerStatus } from '../worker-manager'
 
 const chattyReflectWorkerPath = fsPath.join(__dirname, 'data', 'chatty-reflect-worker.cjs')
+const errorMessageWorkerPath = fsPath.join(__dirname, 'data', 'error-message-worker.mjs')
 const errorWorkerPath = fsPath.join(__dirname, 'data', 'error-worker.cjs')
 const receiverWorkerPath = fsPath.join(__dirname, 'data', 'receiver.mjs')
 const sleepyWorkerPath = fsPath.join(__dirname, 'data', 'sleepy-worker.mjs')
@@ -32,6 +33,9 @@ describe('WorkerManager', () => {
 
     test("calls 'onError' handler", () => expect(onErrorCalled).toBe(true))
   })
+
+  // TODO: I cannot figure out how to trigger this event...
+  // describe('on message error', () => { })
 
   describe('create()', () => {
     test("adds 'acknowledge()' to worker which updates the worker data", () => {
