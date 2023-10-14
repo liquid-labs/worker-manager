@@ -3,6 +3,7 @@ import * as fsPath from 'node:path'
 
 import { WorkerManager, workerStatus } from '../worker-manager'
 
+const badMessengerWorkerPath = fsPath.join(__dirname, 'data', 'bad-messenger.cjs')
 const chattyReflectWorkerPath = fsPath.join(__dirname, 'data', 'chatty-reflect-worker.cjs')
 const errorWorkerPath = fsPath.join(__dirname, 'data', 'error-worker.cjs')
 const sleepyWorkerPath = fsPath.join(__dirname, 'data', 'sleepy-worker.mjs')
@@ -24,6 +25,21 @@ describe('WorkerManager', () => {
     beforeAll(async() => {
       wm = new WorkerManager();
       ({ threadId } = wm.create({ onError: () => onErrorCalled = true, runFile: errorWorkerPath }))
+      await new Promise(resolve => setTimeout(resolve, 100))
+    })
+
+    test('getStatus() => ERROR', () => expect(wm.getStatus(threadId)).toBe(workerStatus.ERROR))
+
+    test("calls 'onError' handler", () => expect(onErrorCalled).toBe(true))
+  })
+
+  describe('on message error', () => {
+    let wm, threadId
+    let onErrorCalled = false
+
+    beforeAll(async() => {
+      wm = new WorkerManager();
+      ({ threadId } = wm.create({ onError: () => onErrorCalled = true, runFile: badMessengerWorkerPath }))
       await new Promise(resolve => setTimeout(resolve, 100))
     })
 
