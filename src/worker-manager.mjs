@@ -12,12 +12,18 @@ Object.freeze(workerStatus)
 
 const WorkerManager = class {
   #data = {}
+  #silent
+  #stderr
   #workers = {}
 
   constructor({ 
     cleanInterval = 10 * 1000 /* 10 sec */, 
+    silent = false,
+    stderr = process.stderr,
     timeout = 25 * 60 * 60 * 1000 /* a little over a day */ 
   } = {}) {
+    this.#silent = silent
+    this.#stderr = stderr
     // clean out completed, acknowledged tasks and too old tasks
     setInterval(() => {
       for (const threadId of Object.keys(this.#data)) {
@@ -76,7 +82,10 @@ const WorkerManager = class {
       }
     })
     worker.on('error', (err) => {
-      console.error(err) // TODO: we lose the stack trace in the 'err.toString()', but there are probaby better approaches
+      if (this.#silent === false) {
+        // TODO: we lose the stack trace in the 'err.toString()', but there are probaby better approaches
+        this.#stderr.write(err.stack)
+      }
       const data = this.#data[threadId]
       if (data) {
         data.status = workerStatus.ERROR
@@ -88,7 +97,10 @@ const WorkerManager = class {
       worker.terminate()
     })
     worker.on('messageerror', (err) => {
-      console.error(err) // TODO: we lose the stack trace in the 'err.toString()', but there are probaby better approaches
+      if (this.#silent === false) {
+        // TODO: we lose the stack trace in the 'err.toString()', but there are probaby better approaches
+        this.#stderr.write(err.stack)
+      }
       const data = this.#data[threadId]
       if (data) {
         data.status = workerStatus.MESSAGE_ERROR
@@ -101,7 +113,7 @@ const WorkerManager = class {
     worker.on('message', (msgData) => {
       const data = this.#data[threadId]
       data.lastMessage = msgData
-      if (data) {
+      if (msgData) {
         const { msg } = msgData
         if (msg) {
           data.actions.push(msg)
