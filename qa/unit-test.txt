@@ -1,0 +1,29 @@
+Test git rev: 3a6e00f7dc5940d2e615c2bfb02403bf34581554
+PASS test/worker-manager.test.js
+  WorkerManager
+    ✓ kills workers exceeding the timeout (507 ms)
+    ✓ gathers 'msg' data automatically (33 ms)
+    ✓ getLastMessage() reflect the last message sent by the worker (22 ms)
+    ✓ calls 'onExit' on exit (22 ms)
+    on worker error
+      ✓ getStatus() => ERROR
+      ✓ calls 'onError' handler (1 ms)
+      ✓ prints message to supplied stderr
+    create()
+      ✓ adds 'acknowledge()' to worker which updates the worker data (1 ms)
+      ✓ raises an error when no 'runfile' option specified (11 ms)
+      ✓ 'onOnline' option is invoked when the worker comes online (102 ms)
+    list()
+      ✓ list a task once started (1 ms)
+
+--------------------|---------|----------|---------|---------|-------------------
+File                | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+--------------------|---------|----------|---------|---------|-------------------
+All files           |   89.61 |    75.51 |   93.33 |   89.47 |                   
+ worker-manager.mjs |   89.61 |    75.51 |   93.33 |   89.47 | 100-110           
+--------------------|---------|----------|---------|---------|-------------------
+Test Suites: 1 passed, 1 total
+Tests:       11 passed, 11 total
+Snapshots:   0 total
+Time:        1.087 s
+Ran all test suites.
