@@ -1,10 +1,23 @@
 {
   "name": "@liquid-labs/worker-manager",
   "version": "1.0.0-alpha.0",
-  "description": "",
+  "description": "A simple worker thread library providing worker management and status tracking.",
   "main": "dist/worker-manager.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "make",
+    "lint": "make lint",
+    "lint:fix": "make lint-fix",
+    "test": "make test",
+    "prepack": "make build",
+    "preversion": "make test && make lint",
+    "qa": "make qa"
+  },
+  "files": [
+    "./dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
   },
   "keywords": [],
   "author": "Zane Rockenbaugh <zane@liquid-labs.com>",
@@ -13,5 +26,10 @@
   "bugs": {
     "url": "https://github.com/liquid-labs/worker-manager/issues"
   },
-  "homepage": "https://github.com/liquid-labs/worker-manager#readme"
+  "homepage": "https://github.com/liquid-labs/worker-manager#readme",
+  "devDependencies": {
+    "@liquid-labs/catalyst-resource-babel-and-rollup": "^1.0.0-alpha.3",
+    "@liquid-labs/catalyst-resource-eslint": "^1.0.0-alpha.1",
+    "@liquid-labs/catalyst-resource-jest": "^1.0.0-alpha.3"
+  }
 }
