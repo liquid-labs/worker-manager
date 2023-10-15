@@ -1,11 +1,11 @@
 import { Worker } from 'worker_threads'
 
 const workerStatus = {
-  DONE: 'done',
-  ERROR: 'error',
-  MESSAGE_ERROR: 'message error',
-  NOT_STARTED: 'not started',
-  STARTED: 'started'
+  DONE          : 'done',
+  ERROR         : 'error',
+  MESSAGE_ERROR : 'message error',
+  NOT_STARTED   : 'not started',
+  STARTED       : 'started'
 }
 
 Object.freeze(workerStatus)
@@ -16,11 +16,11 @@ const WorkerManager = class {
   #stderr
   #workers = {}
 
-  constructor({ 
-    cleanInterval = 10 * 1000 /* 10 sec */, 
+  constructor({
+    cleanInterval = 10 * 1000 /* 10 sec */,
     silent = false,
     stderr = process.stderr,
-    timeout = 25 * 60 * 60 * 1000 /* a little over a day */ 
+    timeout = 25 * 60 * 60 * 1000 /* a little over a day */
   } = {}) {
     this.#silent = silent
     this.#stderr = stderr

@@ -4,16 +4,14 @@ import * as fsPath from 'node:path'
 import { WorkerManager, workerStatus } from '../worker-manager'
 
 const chattyReflectWorkerPath = fsPath.join(__dirname, 'data', 'chatty-reflect-worker.cjs')
-const errorMessageWorkerPath = fsPath.join(__dirname, 'data', 'error-message-worker.mjs')
 const errorWorkerPath = fsPath.join(__dirname, 'data', 'error-worker.cjs')
-const receiverWorkerPath = fsPath.join(__dirname, 'data', 'receiver.mjs')
 const sleepyWorkerPath = fsPath.join(__dirname, 'data', 'sleepy-worker.mjs')
 
 describe('WorkerManager', () => {
-  test('kills workers exceeding the timeout', async () => {
+  test('kills workers exceeding the timeout', async() => {
     let lastMessage
-    const wm = new WorkerManager({ cleanInterval: 100, timeout: 5 })
-    const { threadId } = wm.create({ runFile: sleepyWorkerPath, onMessage: (msg) => lastMessage = msg })
+    const wm = new WorkerManager({ cleanInterval : 100, timeout : 5 })
+    const { threadId } = wm.create({ runFile : sleepyWorkerPath, onMessage : (msg) => { lastMessage = msg } })
     await new Promise(resolve => setTimeout(resolve, 500))
     expect(lastMessage).toBe('started')
     expect(wm.get(threadId)).toBe(undefined)
@@ -25,12 +23,12 @@ describe('WorkerManager', () => {
     let onErrorCalled = false
 
     const stderrMock = {
-      write: (chunk) => errorMsg += chunk
+      write : (chunk) => { errorMsg += chunk }
     }
 
     beforeAll(async() => {
-      wm = new WorkerManager({ stderr: stderrMock });
-      ({ threadId } = wm.create({ onError: () => onErrorCalled = true, runFile: errorWorkerPath }))
+      wm = new WorkerManager({ stderr : stderrMock });
+      ({ threadId } = wm.create({ onError : () => { onErrorCalled = true }, runFile : errorWorkerPath }))
       await new Promise(resolve => setTimeout(resolve, 100))
     })
 
@@ -38,7 +36,7 @@ describe('WorkerManager', () => {
 
     test("calls 'onError' handler", () => expect(onErrorCalled).toBe(true))
 
-    test("prints message to supplied stderr", () => expect(errorMsg).toMatch(/Ahh!/))
+    test('prints message to supplied stderr', () => expect(errorMsg).toMatch(/Ahh!/))
   })
 
   // TODO: I cannot figure out how to trigger this event...
@@ -47,7 +45,7 @@ describe('WorkerManager', () => {
   describe('create()', () => {
     test("adds 'acknowledge()' to worker which updates the worker data", () => {
       const wm = new WorkerManager()
-      const worker = wm.create({ runFile: chattyReflectWorkerPath, workerData: 'ack' })
+      const worker = wm.create({ runFile : chattyReflectWorkerPath, workerData : 'ack' })
       worker.acknowledge()
       expect(wm.get(worker.threadId)?.acknowledged).toBe(true)
     })
@@ -61,8 +59,7 @@ describe('WorkerManager', () => {
     test("'onOnline' option is invoked when the worker comes online", async() => {
       let online = false
       const wm = new WorkerManager()
-      const { threadId } = 
-        wm.create({ onOnline: () => online = true, runFile: chattyReflectWorkerPath, workerData: 'online' })
+      wm.create({ onOnline : () => { online = true }, runFile : chattyReflectWorkerPath, workerData : 'online' })
       expect(online).toBe(false)
       await new Promise(resolve => setTimeout(resolve, 100))
       expect(online).toBe(true)
@@ -72,21 +69,21 @@ describe('WorkerManager', () => {
   describe('list()', () => {
     test('list a task once started', () => {
       const wm = new WorkerManager()
-      const worker = wm.create({ runFile: chattyReflectWorkerPath, workerData: 'hi' })
+      const worker = wm.create({ runFile : chattyReflectWorkerPath, workerData : 'hi' })
       const { threadId } = worker
-      expect(wm.list().some(({ threadId: testId }) => testId = threadId )).toBe(true)
+      expect(wm.list().some(({ threadId: testId }) => testId === threadId)).toBe(true)
     })
   })
 
   test("gathers 'msg' data automatically", async() => {
-    const msg = "do it!"
+    const msg = 'do it!'
     const workerData = { msg }
     const wm = new WorkerManager()
-    const worker = wm.create({ runFile: chattyReflectWorkerPath, workerData })
+    const worker = wm.create({ runFile : chattyReflectWorkerPath, workerData })
     const { threadId } = worker
     for (let i = 0; i < 100; i += 1) {
       if (wm.getStatus(threadId) === workerStatus.DONE) {
-        expect(wm.get(threadId).actions).toEqual([ msg ])
+        expect(wm.get(threadId).actions).toEqual([msg])
         break
       }
 
@@ -94,10 +91,10 @@ describe('WorkerManager', () => {
     }
   })
 
-  test('getLastMessage() reflect the last message sent by the worker', async () => {
+  test('getLastMessage() reflect the last message sent by the worker', async() => {
     const workerData = 'hi!'
     const wm = new WorkerManager()
-    const worker = wm.create({ runFile: chattyReflectWorkerPath, workerData })
+    const worker = wm.create({ runFile : chattyReflectWorkerPath, workerData })
     const { threadId } = worker
     for (let i = 0; i < 100; i += 1) {
       if (wm.getStatus(threadId) === workerStatus.DONE) {
@@ -110,10 +107,10 @@ describe('WorkerManager', () => {
   })
 
   test("calls 'onExit' on exit", async() => {
-    let exitCode = undefined
+    let exitCode
     const workerData = 'hi!'
     const wm = new WorkerManager()
-    const worker = wm.create({ onExit: (code) => exitCode = code, runFile: chattyReflectWorkerPath, workerData })
+    const worker = wm.create({ onExit : (code) => { exitCode = code }, runFile : chattyReflectWorkerPath, workerData })
     const { threadId } = worker
     for (let i = 0; i < 100; i += 1) {
       if (wm.getStatus(threadId) === workerStatus.DONE) {
